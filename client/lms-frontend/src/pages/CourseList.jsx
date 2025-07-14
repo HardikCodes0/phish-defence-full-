@@ -6,6 +6,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { AuthContext } from '../context/authcontext';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const Courses = () => {
   const { isDarkMode } = useTheme();
   const { user } = useContext(AuthContext);
@@ -42,7 +44,7 @@ const Courses = () => {
         const token = localStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
-        const res = await axios.get(`http://localhost:5000/api/enroll/${user._id}`, { headers });
+        const res = await axios.get(`${API_URL}/api/enroll/${user._id}`, { headers });
         const enrolledCourseIds = res.data.map(enrollment => enrollment._id);
         setEnrolledCourses(enrolledCourseIds);
       } catch (err) {

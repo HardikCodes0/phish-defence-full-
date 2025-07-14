@@ -28,6 +28,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTheme } from '../contexts/ThemeContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const AddCourse = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -251,13 +253,13 @@ const AddCourse = () => {
       
       // First test Cloudinary connection
       try {
-        const testRes = await axios.get('http://localhost:5000/api/lesson/test-cloudinary');
+        const testRes = await axios.get(`${API_URL}/api/lesson/test-cloudinary`);
         console.log('✅ Cloudinary test successful:', testRes.data);
       } catch (testErr) {
         console.warn('⚠️ Cloudinary test failed:', testErr.response?.data || testErr.message);
       }
       
-      const res = await axios.post('http://localhost:5000/api/lesson/thumbnail-upload', formDataObj, {
+      const res = await axios.post(`${API_URL}/api/lesson/thumbnail-upload`, formDataObj, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -308,7 +310,7 @@ const AddCourse = () => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await axios.post('http://localhost:5000/api/lesson/upload', formData, {
+      const res = await axios.post(`${API_URL}/api/lesson/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -335,7 +337,7 @@ const AddCourse = () => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await axios.post('http://localhost:5000/api/lesson/resource/upload', formData, {
+      const res = await axios.post(`${API_URL}/api/lesson/resource/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -423,7 +425,7 @@ const AddCourse = () => {
       // Create lessons
       for (let i = 0; i < lessons.length; i++) {
         const lesson = lessons[i];
-        const lessonRes = await axios.post('http://localhost:5000/api/lesson/addlesson', {
+        const lessonRes = await axios.post(`${API_URL}/api/lesson/addlesson`, {
           course: courseId,
           title: lesson.title,
           videourl: lesson.videourl,
@@ -435,7 +437,7 @@ const AddCourse = () => {
         const lessonId = lessonRes.data._id;
         const resources = lesson.resources || [];
         for (const resource of resources) {
-          await axios.post(`http://localhost:5000/api/lesson/resource/${lessonId}`, resource);
+          await axios.post(`${API_URL}/api/lesson/resource/${lessonId}`, resource);
         }
       }
 

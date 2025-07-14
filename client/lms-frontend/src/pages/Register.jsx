@@ -4,6 +4,8 @@ import { registerUser } from '../api/user';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/authcontext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const Register = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -160,7 +162,7 @@ const Register = () => {
 
           {/* Google Sign Up Button */}
           <div className="mt-6 text-center">
-            <a href="http://localhost:5000/api/auth/google">
+            <a href={`${API_URL}/api/auth/google`}>
               <button className="w-full bg-white border border-gray-300 dark:bg-slate-700 dark:border-slate-600 text-gray-700 dark:text-white py-3 rounded-lg flex justify-center items-center space-x-2 shadow-sm hover:shadow-md transition mb-4">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" className="h-5 w-5 mr-2" />
                 <span>Sign up with Google</span>

@@ -17,6 +17,8 @@ import axios from 'axios';
 import { AuthContext } from '../context/authcontext';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const Support = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -66,7 +68,7 @@ const Support = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/support/contact', contactForm);
+      await axios.post(`${API_URL}/api/support/contact`, contactForm);
       alert('Thank you for your message! We\'ll get back to you within 24 hours.');
       setContactForm({
         name: '',

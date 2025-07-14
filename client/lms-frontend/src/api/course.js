@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: `${API_URL}/api`,
 });
 
 // Helper to set auth header

@@ -16,6 +16,8 @@ import { useTheme } from '../contexts/ThemeContext';
 const CERTIFICATE_OPTIONS = ['Included', 'Not Included', 'On Completion'];
 const ACCESS_OPTIONS = ['Lifetime', '1 Year', '6 Months', 'No Access'];
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const CourseDetail = () => {
   const { id } = useParams();
   const [course, setCourse] = useState(null);
@@ -111,7 +113,7 @@ const CourseDetail = () => {
     const fetchCompletedLessons = async () => {
       if (!user || !user._id || !course?._id) return;
       try {
-        const res = await axios.get(`http://localhost:5000/api/enroll/progress/${user._id}`, {
+        const res = await axios.get(`${API_URL}/api/enroll/progress/${user._id}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         const courseProgress = Array.isArray(res.data)
@@ -190,7 +192,7 @@ const CourseDetail = () => {
         setCompletedLessonsByUser(prev => ({ ...prev, [lessonId]: true }));
       } else {
         // Unmarking: remove from completed lessons (custom endpoint needed)
-        await axios.post('http://localhost:5000/api/enroll/uncomplete-lesson', {
+        await axios.post(`${API_URL}/api/enroll/uncomplete-lesson`, {
           student: user._id,
           course: course._id,
           lesson: lessonId
@@ -227,7 +229,7 @@ const CourseDetail = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/courses/${id}`);
+        const res = await axios.get(`${API_URL}/api/courses/${id}`);
         setCourse(res.data);
       } catch (err) {
         console.error('Error fetching course:', err);
@@ -244,7 +246,7 @@ const CourseDetail = () => {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         console.log('🔍 Fetching lessons for course:', id, 'with auth:', !!token);
-        const res = await axios.get(`http://localhost:5000/api/lesson/${id}`, { headers });
+        const res = await axios.get(`${API_URL}/api/lesson/${id}`, { headers });
         console.log('📚 Fetched lessons:', res.data);
         setLessons(res.data);
         
@@ -277,7 +279,7 @@ const CourseDetail = () => {
       console.log('🔍 Checking enrollment for:', { userId: user._id, courseId: course._id });
       
       try {
-        const res = await axios.get(`http://localhost:5000/api/enroll/${user._id}`);
+        const res = await axios.get(`${API_URL}/api/enroll/${user._id}`);
         const enrolledCourses = res.data;
         console.log('📚 Enrolled courses:', enrolledCourses);
         
@@ -367,7 +369,7 @@ const CourseDetail = () => {
       
       for (const lesson of lessons) {
         try {
-          const res = await axios.get(`http://localhost:5000/api/lesson/resource/${lesson._id}`, { headers });
+          const res = await axios.get(`${API_URL}/api/lesson/resource/${lesson._id}`, { headers });
           resourcesMap[lesson._id] = res.data;
         } catch (err) {
           // For non-authenticated users, resources might not be accessible
@@ -394,7 +396,7 @@ const CourseDetail = () => {
       
       try {
         // Check quiz eligibility
-        const eligibilityRes = await axios.get(`http://localhost:5000/api/quiz/course/${course._id}/eligibility`, {
+        const eligibilityRes = await axios.get(`${API_URL}/api/quiz/course/${course._id}/eligibility`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setQuizEligibility(eligibilityRes.data);
@@ -428,7 +430,7 @@ const CourseDetail = () => {
         // Free course: Direct enrollment
         await enrollUserInCourse(user._id, course._id);
         // Re-check enrollment status from backend
-        const res = await axios.get(`http://localhost:5000/api/enroll/${user._id}`);
+        const res = await axios.get(`${API_URL}/api/enroll/${user._id}`);
         const enrolledCourses = res.data;
         const alreadyEnrolled = enrolledCourses.some(c => c && c._id === course._id);
         setIsEnrolled(alreadyEnrolled);
@@ -580,7 +582,7 @@ const CourseDetail = () => {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
-      const res = await axios.post('http://localhost:5000/api/lesson/addlesson', {
+      const res = await axios.post(`${API_URL}/api/lesson/addlesson`, {
         course: course?._id,
         ...newLesson,
         order: editLessons.length + 1,
@@ -614,7 +616,7 @@ const CourseDetail = () => {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
-      await axios.post(`http://localhost:5000/api/lesson/resource/${lessonId}`, { ...resourceInput, type: 'Link' }, { headers });
+      await axios.post(`${API_URL}/api/lesson/resource/${lessonId}`, { ...resourceInput, type: 'Link' }, { headers });
       setLessonResources(prev => ({
         ...prev,
         [lessonId]: [...(prev[lessonId] || []), { ...resourceInput, type: 'Link' }],
@@ -636,7 +638,7 @@ const CourseDetail = () => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await axios.post('http://localhost:5000/api/lesson/resource/upload', formData, {
+      const res = await axios.post(`${API_URL}/api/lesson/resource/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -651,7 +653,7 @@ const CourseDetail = () => {
       };
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      await axios.post(`http://localhost:5000/api/lesson/resource/${lessonId}`, resource, { headers });
+      await axios.post(`${API_URL}/api/lesson/resource/${lessonId}`, resource, { headers });
       setLessonResources(prev => ({
         ...prev,
         [lessonId]: [...(prev[lessonId] || []), resource],

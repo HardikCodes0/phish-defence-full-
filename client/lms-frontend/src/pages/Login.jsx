@@ -4,6 +4,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { login as apiLogin } from '../api/auth';
 import { AuthContext } from '../context/authcontext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '', rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
@@ -206,7 +208,7 @@ const Login = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <a href="http://localhost:5000/api/auth/google">
+            <a href={`${API_URL}/api/auth/google`}>
               <button className="w-full bg-white border border-gray-300 dark:bg-slate-700 dark:border-slate-600 text-gray-700 dark:text-white py-3 rounded-lg flex justify-center items-center space-x-2 shadow-sm hover:shadow-md transition mb-4">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" className="h-5 w-5 mr-2" />
                 <span>Sign in with Google</span>

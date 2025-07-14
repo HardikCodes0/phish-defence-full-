@@ -27,6 +27,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { AuthContext } from '../context/authcontext';
 import { getUserById, changePassword } from '../api/user';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://phish-defence-full.onrender.com';
+
 const Settings = () => {
   const { isDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('profile');
@@ -73,7 +75,7 @@ const Settings = () => {
     if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
     try {
       // Call backend API to delete user
-      await fetch(`http://localhost:5000/api/users/${user._id}`, {
+      await fetch(`${API_URL}/api/users/${user._id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
