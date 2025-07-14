@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.6s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Focus styles */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #14b8a6;
+  outline-offset: 2px;
+}
+
+/* Loading animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Jotform AI Agent Customization - Phish Defense Theme */
+#JotformAgent-019803871aa976d4b0642ba001eeaeabce5d {
+  z-index: 9999 !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+#JotformAgent-019803871aa976d4b0642ba001eeaeabce5d iframe {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(20, 184, 166, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Chat button styling */
+#JotformAgent-019803871aa976d4b0642ba001eeaeabce5d .jf-agent-button {
+  background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 8px 25px rgba(20, 184, 166, 0.4) !important;
+  transition: all 0.3s ease !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+#JotformAgent-019803871aa976d4b0642ba001eeaeabce5d .jf-agent-button:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 12px 35px rgba(20, 184, 166, 0.6) !important;
+}
+
+/* Pulse animation for the button */
+#JotformAgent-019803871aa976d4b0642ba001eeaeabce5d .jf-agent-button::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+}
+
+/* Mobile Responsive for Jotform Agent */
+@media (max-width: 768px) {
+  #JotformAgent-019803871aa976d4b0642ba001eeaeabce5d {
+    bottom: 20px !important;
+    right: 20px !important;
+  }
+  
+  #JotformAgent-019803871aa976d4b0642ba001eeaeabce5d iframe {
+    width: 320px !important;
+    height: 400px !important;
+    border-radius: 12px !important;
+  }
+  
+  #JotformAgent-019803871aa976d4b0642ba001eeaeabce5d .jf-agent-button {
+    width: 50px !important;
+    height: 50px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #JotformAgent-019803871aa976d4b0642ba001eeaeabce5d {
+    bottom: 15px !important;
+    right: 15px !important;
+  }
+  
+  #JotformAgent-019803871aa976d4b0642ba001eeaeabce5d iframe {
+    width: 280px !important;
+    height: 350px !important;
+  }
+  
+  #JotformAgent-019803871aa976d4b0642ba001eeaeabce5d .jf-agent-button {
+    width: 45px !important;
+    height: 45px !important;
+  }
+}
