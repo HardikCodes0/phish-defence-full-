@@ -82,12 +82,20 @@ const getUserProgress = async (req, res) => {
     const progressData = await Promise.all(enrollments
       .filter(e => e.course) // Only process enrollments with a valid course
       .map(async (e) => {
-        // Get all current lessons for this course
-        const currentLessons = await Lesson.find({ course: e.course._id }, '_id');
+        const course = e.course;
+        let currentLessons;
+        if (course.isFree) {
+          // Free course: all lessons are visible
+          currentLessons = await Lesson.find({ course: course._id }, '_id');
+        } else {
+          // Paid course: only free lessons if not enrolled, else all lessons
+          // Since this is called for enrolled users, show all lessons
+          currentLessons = await Lesson.find({ course: course._id }, '_id');
+        }
         const currentLessonIds = currentLessons.map(l => l._id.toString());
-        const totalLessons = currentLessonIds.length;
         // Only count completed lessons that still exist in the course
         const filteredCompleted = e.completedlessons.filter(l => currentLessonIds.includes(l._id.toString()));
+        const totalLessons = currentLessonIds.length;
         let progress = 0;
         if (totalLessons === 0) {
           progress = 0;
