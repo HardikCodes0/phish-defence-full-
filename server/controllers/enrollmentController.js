@@ -1,6 +1,7 @@
 const Enrollment = require('../models/Enrollment');
 const Lesson = require('../models/lesson');
 
+// Enroll a user in a course
 const enrollUser = async (req, res) => {
   const { student, course } = req.body;
 
@@ -19,8 +20,7 @@ const enrollUser = async (req, res) => {
 const getUserEnrolledCourses = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const enrollments = await Enrollment.find({ student: userId })
-      .populate('course');
+    const enrollments = await Enrollment.find({ student: userId }).populate('course');
     const courses = enrollments.map(e => e.course);
     res.status(200).json(courses);
   } catch (error) {
@@ -28,97 +28,109 @@ const getUserEnrolledCourses = async (req, res) => {
   }
 };
 
-// Mark a lesson as completed for a user in a course
+// Mark a lesson as completed
 const markLessonComplete = async (req, res) => {
   const { student, course, lesson } = req.body;
   try {
     const enrollment = await Enrollment.findOne({ student, course });
     if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
+
     if (!enrollment.completedlessons.includes(lesson)) {
       enrollment.completedlessons.push(lesson);
-      // Optionally, mark as completed if all lessons are done
+
       const totalLessons = await Lesson.countDocuments({ course });
       if (enrollment.completedlessons.length >= totalLessons) {
         enrollment.iscompleted = true;
       }
       await enrollment.save();
     }
+
     res.status(200).json(enrollment);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
-// Unmark a lesson as completed for a user in a course
+// Unmark a lesson as completed
 const unmarkLessonComplete = async (req, res) => {
   const { student, course, lesson } = req.body;
   try {
     const enrollment = await Enrollment.findOne({ student, course });
     if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
+
     const idx = enrollment.completedlessons.findIndex(l => l.toString() === lesson);
     if (idx !== -1) {
       enrollment.completedlessons.splice(idx, 1);
-      // Optionally, mark as not completed if not all lessons are done
+
       const totalLessons = await Lesson.countDocuments({ course });
       if (enrollment.completedlessons.length < totalLessons) {
         enrollment.iscompleted = false;
       }
       await enrollment.save();
     }
+
     res.status(200).json(enrollment);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
-// Get all enrollments for a user, with progress for each course
+// Get user's progress for all enrolled courses
 const getUserProgress = async (req, res) => {
   try {
     const userId = req.params.userId;
+
     const enrollments = await Enrollment.find({ student: userId })
       .populate('course')
       .populate('completedlessons');
-    // For each enrollment, calculate progress
+
     const progressData = await Promise.all(enrollments
-      .filter(e => e.course) // Only process enrollments with a valid course
+      .filter(e => e.course) // filter out deleted courses
       .map(async (e) => {
         const course = e.course;
-        let currentLessons;
-        if (course.isFree) {
-          // Free course: all lessons are visible
-          currentLessons = await Lesson.find({ course: course._id }, '_id');
-        } else {
-          // Paid course: check if user is enrolled (always true here), so show all lessons
-          currentLessons = await Lesson.find({ course: course._id }, '_id');
-        }
-        // Filter out lessons that are not visible to the user (match lessonController logic)
-        // For paid courses, if not enrolled, only count free lessons
-        // But since this is called for enrolled users, all lessons are visible
-        // If you want to be extra safe, you can check for lesson.free logic here if needed
-        const currentLessonIds = currentLessons.map(l => l._id.toString());
-        // Only count completed lessons that still exist in the course
-        const filteredCompleted = e.completedlessons.filter(l => currentLessonIds.includes(l._id.toString()));
-        const totalLessons = currentLessonIds.length;
+
+        // Fetch all lessons for this course
+        const allLessons = await Lesson.find({ course: course._id }, '_id');
+        const allLessonIds = allLessons.map(lesson => lesson._id.toString());
+
+        // Normalize completed lesson IDs
+        const completedIds = e.completedlessons.map(lesson => lesson._id.toString());
+        const filteredCompleted = completedIds.filter(id => allLessonIds.includes(id));
+
+        const totalLessons = allLessonIds.length;
+        const completedCount = filteredCompleted.length;
+
         let progress = 0;
-        if (totalLessons === 0) {
-          progress = 0;
-        } else if (filteredCompleted.length >= totalLessons) {
-          progress = 100;
-        } else {
-          progress = Math.round((filteredCompleted.length / totalLessons) * 100);
+        if (totalLessons > 0) {
+          progress = Math.round((completedCount / totalLessons) * 100);
         }
+
+        // Optional: Auto-mark course as completed
+        if (progress === 100 && !e.iscompleted) {
+          e.iscompleted = true;
+          await e.save();
+        }
+
         return {
-          course: e.course,
+          course,
           completedlessons: filteredCompleted,
           progress,
-          iscompleted: e.iscompleted || false,
+          iscompleted: e.iscompleted
         };
       })
     );
+
     res.status(200).json(progressData);
   } catch (error) {
+    console.error('Error in getUserProgress:', error);
     res.status(400).json({ message: error.message });
   }
 };
 
-module.exports = { enrollUser, getUserEnrolledCourses, markLessonComplete, getUserProgress, unmarkLessonComplete };
+module.exports = {
+  enrollUser,
+  getUserEnrolledCourses,
+  markLessonComplete,
+  unmarkLessonComplete,
+  getUserProgress
+};
