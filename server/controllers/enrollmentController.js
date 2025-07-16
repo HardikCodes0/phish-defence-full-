@@ -1,7 +1,7 @@
 const Enrollment = require('../models/Enrollment');
 const Lesson = require('../models/lesson');
 
-// Enroll a user in a course
+// Enroll user in a course
 const enrollUser = async (req, res) => {
   const { student, course } = req.body;
 
@@ -37,7 +37,6 @@ const markLessonComplete = async (req, res) => {
 
     if (!enrollment.completedlessons.includes(lesson)) {
       enrollment.completedlessons.push(lesson);
-
       const totalLessons = await Lesson.countDocuments({ course });
       if (enrollment.completedlessons.length >= totalLessons) {
         enrollment.iscompleted = true;
@@ -58,10 +57,9 @@ const unmarkLessonComplete = async (req, res) => {
     const enrollment = await Enrollment.findOne({ student, course });
     if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
 
-    const idx = enrollment.completedlessons.findIndex(l => l.toString() === lesson);
-    if (idx !== -1) {
-      enrollment.completedlessons.splice(idx, 1);
-
+    const index = enrollment.completedlessons.findIndex(l => l.toString() === lesson);
+    if (index !== -1) {
+      enrollment.completedlessons.splice(index, 1);
       const totalLessons = await Lesson.countDocuments({ course });
       if (enrollment.completedlessons.length < totalLessons) {
         enrollment.iscompleted = false;
@@ -75,45 +73,44 @@ const unmarkLessonComplete = async (req, res) => {
   }
 };
 
-// Get user's progress for all enrolled courses
+// ✅ FIXED: Get user progress for each enrolled course
 const getUserProgress = async (req, res) => {
   try {
     const userId = req.params.userId;
-
     const enrollments = await Enrollment.find({ student: userId })
       .populate('course')
       .populate('completedlessons');
 
     const progressData = await Promise.all(enrollments
-      .filter(e => e.course) // filter out deleted courses
+      .filter(e => e.course) // Skip deleted/invalid courses
       .map(async (e) => {
-        const course = e.course;
+        const courseId = e.course._id;
 
-        // Fetch all lessons for this course
-        const allLessons = await Lesson.find({ course: course._id }, '_id');
-        const allLessonIds = allLessons.map(lesson => lesson._id.toString());
+        // Get all lesson IDs for this course
+        const lessons = await Lesson.find({ course: courseId }, '_id');
+        const totalLessons = lessons.length;
+        const lessonIds = lessons.map(lesson => lesson._id.toString());
 
-        // Normalize completed lesson IDs
-        const completedIds = e.completedlessons.map(lesson => lesson._id.toString());
-        const filteredCompleted = completedIds.filter(id => allLessonIds.includes(id));
+        // Convert completed lesson IDs to string
+        const completedIds = e.completedlessons.map(l => l._id.toString());
 
-        const totalLessons = allLessonIds.length;
-        const completedCount = filteredCompleted.length;
+        // Count how many completed lessons are valid for this course
+        const completedCount = completedIds.filter(id => lessonIds.includes(id)).length;
 
-        let progress = 0;
-        if (totalLessons > 0) {
-          progress = Math.round((completedCount / totalLessons) * 100);
-        }
+        // Calculate progress percentage
+        const progress = totalLessons > 0
+          ? Math.round((completedCount / totalLessons) * 100)
+          : 0;
 
-        // Optional: Auto-mark course as completed
+        // Update iscompleted if 100% complete and not marked yet
         if (progress === 100 && !e.iscompleted) {
           e.iscompleted = true;
           await e.save();
         }
 
         return {
-          course,
-          completedlessons: filteredCompleted,
+          course: e.course,
+          completedlessons: completedIds,
           progress,
           iscompleted: e.iscompleted
         };
@@ -122,8 +119,8 @@ const getUserProgress = async (req, res) => {
 
     res.status(200).json(progressData);
   } catch (error) {
-    console.error('Error in getUserProgress:', error);
-    res.status(400).json({ message: error.message });
+    console.error('❌ Progress fetch error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
