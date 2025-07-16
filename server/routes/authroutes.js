@@ -16,7 +16,7 @@ router.get('/google/callback', passport.authenticate('google', { session: false,
   const { token, user } = req.user;
   // Send the full user object as a JSON string
   res.redirect(
-    `http://localhost:5173/login?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
+    `${FRONTEND_URL}/login?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
   );
 });
 
