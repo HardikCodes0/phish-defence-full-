@@ -83,7 +83,15 @@ const getUserProgress = async (req, res) => {
       .filter(e => e.course) // Only process enrollments with a valid course
       .map(async (e) => {
         const totalLessons = await Lesson.countDocuments({ course: e.course._id });
-        const progress = totalLessons > 0 ? Math.round((e.completedlessons.length / totalLessons) * 100) : 0;
+        // If user has completed all lessons (or more, e.g., due to deleted lessons), progress is 100%
+        let progress = 0;
+        if (totalLessons === 0) {
+          progress = 0;
+        } else if (e.completedlessons.length >= totalLessons) {
+          progress = 100;
+        } else {
+          progress = Math.round((e.completedlessons.length / totalLessons) * 100);
+        }
         return {
           course: e.course,
           completedlessons: e.completedlessons,
