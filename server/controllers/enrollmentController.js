@@ -82,25 +82,28 @@ const getUserProgress = async (req, res) => {
     const progressData = await Promise.all(enrollments
       .filter(e => e.course) // Only process enrollments with a valid course
       .map(async (e) => {
-        const totalLessons = await Lesson.countDocuments({ course: e.course._id });
-        // If user has completed all lessons (or more, e.g., due to deleted lessons), progress is 100%
+        // Get all current lessons for this course
+        const currentLessons = await Lesson.find({ course: e.course._id }, '_id');
+        const currentLessonIds = currentLessons.map(l => l._id.toString());
+        const totalLessons = currentLessonIds.length;
+        // Only count completed lessons that still exist in the course
+        const filteredCompleted = e.completedlessons.filter(l => currentLessonIds.includes(l._id.toString()));
         let progress = 0;
         if (totalLessons === 0) {
           progress = 0;
-        } else if (e.completedlessons.length >= totalLessons) {
+        } else if (filteredCompleted.length >= totalLessons) {
           progress = 100;
         } else {
-          progress = Math.round((e.completedlessons.length / totalLessons) * 100);
+          progress = Math.round((filteredCompleted.length / totalLessons) * 100);
         }
         return {
           course: e.course,
-          completedlessons: e.completedlessons,
+          completedlessons: filteredCompleted,
           progress,
           iscompleted: e.iscompleted || false,
         };
       })
     );
-    console.log('Progress Data Sent:', progressData); // Add this line
     res.status(200).json(progressData);
   } catch (error) {
     res.status(400).json({ message: error.message });
