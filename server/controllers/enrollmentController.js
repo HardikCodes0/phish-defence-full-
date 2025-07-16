@@ -88,10 +88,13 @@ const getUserProgress = async (req, res) => {
           // Free course: all lessons are visible
           currentLessons = await Lesson.find({ course: course._id }, '_id');
         } else {
-          // Paid course: only free lessons if not enrolled, else all lessons
-          // Since this is called for enrolled users, show all lessons
+          // Paid course: check if user is enrolled (always true here), so show all lessons
           currentLessons = await Lesson.find({ course: course._id }, '_id');
         }
+        // Filter out lessons that are not visible to the user (match lessonController logic)
+        // For paid courses, if not enrolled, only count free lessons
+        // But since this is called for enrolled users, all lessons are visible
+        // If you want to be extra safe, you can check for lesson.free logic here if needed
         const currentLessonIds = currentLessons.map(l => l._id.toString());
         // Only count completed lessons that still exist in the course
         const filteredCompleted = e.completedlessons.filter(l => currentLessonIds.includes(l._id.toString()));
