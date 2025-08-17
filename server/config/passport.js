@@ -12,14 +12,40 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Find or create user
-      let user = await User.findOne({ email: profile.emails[0].value });
+      const email = profile?.emails?.[0]?.value;
+      let user = await User.findOne({ email });
+
       if (!user) {
+        // Ensure a unique username when creating a new Google user
+        const baseFromDisplay = (profile?.displayName || '').toString().trim();
+        const baseFromEmail = (email ? email.split('@')[0] : '').toString().trim();
+        const base = baseFromDisplay || baseFromEmail || 'user';
+
+        // slugify base to allowed characters
+        const slug = base
+          .toLowerCase()
+          .replace(/[^a-z0-9_\-\s]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '') || 'user';
+
+        let candidate = slug;
+        let suffix = 0;
+        // Try to find a unique username
+        // Limit attempts to avoid infinite loop
+        while (await User.exists({ username: candidate })) {
+          suffix += 1;
+          candidate = `${slug}${suffix}`;
+          if (suffix > 1000) break;
+        }
+
         user = await User.create({
-          username: profile.displayName,
-          email: profile.emails[0].value,
+          username: candidate,
+          email,
           isGoogleUser: true,
         });
       }
+
       // Attach user and JWT to req.user
       const token = jwt.sign({ _id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
       return done(null, { user, token });
@@ -29,4 +55,4 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   }));
 } else {
   console.log('⚠️  Google OAuth credentials not found. Google OAuth authentication will be disabled.');
-} 
+}
