@@ -13,10 +13,11 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: function() {
+    required: function () {
       // Only require password if not a Google user
       return !this.isGoogleUser;
     },
+    // ❌ No unique: true here, because multiple Google users may not have a password
   },
   isGoogleUser: {
     type: Boolean,
@@ -27,5 +28,8 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
 });
+
+// ✅ Ensure no unique index exists on password field
+userSchema.index({ password: 1 }, { unique: false });
 
 module.exports = mongoose.model('User', userSchema);
