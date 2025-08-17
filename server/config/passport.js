@@ -13,6 +13,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     try {
       // Find or create user
       const email = profile?.emails?.[0]?.value;
+      if (!email) {
+        return done(new Error('No email returned by Google'), null);
+      }
       let user = await User.findOne({ email });
 
       if (!user) {
